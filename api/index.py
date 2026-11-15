@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import random
 import urllib.request
 
 TOKEN = os.environ.get("BOT_TOKEN")
@@ -40,11 +41,16 @@ class handler(BaseHTTPRequestHandler):
                 if any(phrase in text_lower for phrase in ["узбек сила", "озбек сила", "ozbek sila"]):
                     self.send_reaction(chat_id, message_id, "💯")
 
-                # Б. Пасхалка на имя "Абзал"
+                # Б. Пасхалка на имя "Таня" (рандомный смайлик 🤨 или 👀)
+                elif "таня" in text_lower:
+                    random_emoji = random.choice(["🤨", "👀"])
+                    self.send_reply(chat_id, random_emoji, message_id)
+
+                # В. Пасхалка на имя "Абзал"
                 elif "абзал" in text_lower:
                     self.send_reply(chat_id, "Мой папочка", message_id)
 
-                # В. Обучение: если это ответ (reply) на чье-то сообщение
+                # Г. Обучение: если это ответ (reply) на чье-то сообщение
                 elif "reply_to_message" in msg and "text" in msg["reply_to_message"]:
                     original_text = msg["reply_to_message"]["text"].strip()
                     reply_text = text.strip()
@@ -54,7 +60,7 @@ class handler(BaseHTTPRequestHandler):
                     # Ставим реакцию-карандашик вместо текста
                     self.send_reaction(chat_id, message_id, "✍️")
 
-                # Г. Проверка: есть ли триггер в нашей памяти
+                # Д. Проверка: есть ли триггер в нашей памяти
                 elif text_lower in MEMORY:
                     answer = MEMORY[text_lower]
                     self.send_reply(chat_id, answer, message_id)
