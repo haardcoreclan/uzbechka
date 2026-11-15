@@ -35,7 +35,11 @@ class handler(BaseHTTPRequestHandler):
             text = msg["text"]
             text_lower = text.strip().lower()
             
-            if not msg.get("from", {}).get("is_bot", False):
+            # Достаем данные об отправителе
+            sender = msg.get("from", {})
+            username = sender.get("username", "").lower()
+            
+            if not sender.get("is_bot", False):
                 
                 # А. Реакция "100%" на фразу про узбеков
                 if any(phrase in text_lower for phrase in ["узбек сила", "озбек сила", "ozbek sila"]):
@@ -64,6 +68,10 @@ class handler(BaseHTTPRequestHandler):
                 elif text_lower in MEMORY:
                     answer = MEMORY[text_lower]
                     self.send_reply(chat_id, answer, message_id)
+
+                # Е. Персональный прикол для Ойбека (@carpx_dixm)
+                elif username == "carpx_dixm":
+                    self.send_reply(chat_id, "Kel, Dota 2 o'ynaymiz", message_id)
 
         self.send_response(200)
         self.end_headers()
