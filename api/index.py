@@ -36,25 +36,25 @@ class handler(BaseHTTPRequestHandler):
             
             if not msg.get("from", {}).get("is_bot", False):
                 
-                # А. Пасхалка на имя "Абзал"
-                if "абзал" in text_lower:
+                # А. Реакция "100%" на фразу про узбеков
+                if any(phrase in text_lower for phrase in ["узбек сила", "озбек сила", "ozbek sila"]):
+                    self.send_reaction(chat_id, message_id, "💯")
+
+                # Б. Пасхалка на имя "Абзал"
+                elif "абзал" in text_lower:
                     self.send_reply(chat_id, "Мой папочка", message_id)
 
-                # Б. Обучение: если это ответ (reply) на чье-то сообщение
+                # В. Обучение: если это ответ (reply) на чье-то сообщение
                 elif "reply_to_message" in msg and "text" in msg["reply_to_message"]:
                     original_text = msg["reply_to_message"]["text"].strip()
                     reply_text = text.strip()
                     # Запоминаем связку
                     MEMORY[original_text.lower()] = reply_text
                     
-                    # Колоритный ответ с восточным вайбом и смайликами ✨
-                    collab_text = (
-                        f"Voy, qoyil! 🌸 Yozib qo‘ydim, jonim: "
-                        f"endi «{original_text}» desalar — «{reply_text}» deb javob beraman! 💅✨"
-                    )
-                    self.send_reply(chat_id, collab_text, message_id)
+                    # Ставим реакцию-карандашик вместо текста
+                    self.send_reaction(chat_id, message_id, "✍️")
 
-                # В. Проверка: есть ли триггер в нашей памяти
+                # Г. Проверка: есть ли триггер в нашей памяти
                 elif text_lower in MEMORY:
                     answer = MEMORY[text_lower]
                     self.send_reply(chat_id, answer, message_id)
@@ -70,6 +70,18 @@ class handler(BaseHTTPRequestHandler):
             "text": text,
             "reply_to_message_id": reply_to_id
         }
+        self._make_request(url, payload)
+
+    def send_reaction(self, chat_id, message_id, emoji):
+        url = f"https://api.telegram.org/bot{TOKEN}/setMessageReaction"
+        payload = {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "reaction": [{"type": "emoji", "emoji": emoji}]
+        }
+        self._make_request(url, payload)
+
+    def _make_request(self, url, payload):
         req = urllib.request.Request(
             url,
             data=json.dumps(payload).encode('utf-8'),
