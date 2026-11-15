@@ -5,8 +5,7 @@ import urllib.request
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
-# Временная память для обучения фраз (сохраняется, пока сервер активен)
-# Ключ: слово, которое написали; Значение: чем отвечать
+# Временная память для обучения фраз
 MEMORY = {
     "чë": "через плечо",
     "чё": "через плечо",
@@ -43,12 +42,17 @@ class handler(BaseHTTPRequestHandler):
 
                 # Б. Обучение: если это ответ (reply) на чье-то сообщение
                 elif "reply_to_message" in msg and "text" in msg["reply_to_message"]:
-                    original_text = msg["reply_to_message"]["text"].strip().lower()
+                    original_text = msg["reply_to_message"]["text"].strip()
                     reply_text = text.strip()
                     # Запоминаем связку
-                    MEMORY[original_text] = reply_text
-                    # Подтверждаем обучение (можно убрать, если не хочешь лишних слов)
-                    self.send_reply(chat_id, f"Запомнил: на «{msg['reply_to_message']['text']}» отвечать «{reply_text}» 😎", message_id)
+                    MEMORY[original_text.lower()] = reply_text
+                    
+                    # Колоритный ответ с восточным вайбом и смайликами ✨
+                    collab_text = (
+                        f"Voy, qoyil! 🌸 Yozib qo‘ydim, jonim: "
+                        f"endi «{original_text}» desalar — «{reply_text}» deb javob beraman! 💅✨"
+                    )
+                    self.send_reply(chat_id, collab_text, message_id)
 
                 # В. Проверка: есть ли триггер в нашей памяти
                 elif text_lower in MEMORY:
@@ -67,7 +71,7 @@ class handler(BaseHTTPRequestHandler):
             "reply_to_message_id": reply_to_id
         }
         req = urllib.request.Request(
-        url,
+            url,
             data=json.dumps(payload).encode('utf-8'),
             headers={'Content-Type': 'application/json'}
         )
